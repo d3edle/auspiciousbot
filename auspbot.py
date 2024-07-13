@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands
-import responses
 import datetime 
-import time
+import csv
 import json
 
 global allStreakDict
@@ -17,6 +16,20 @@ gameBot = commands.Bot(
     description=description,
     intents=intents,
 )
+with open('log.csv', 'r') as file_in:
+    dictReader = csv.DictReader(file_in)
+    for line in dictReader:
+        if line['user_id'] not in allStreakDict:
+            allStreakDict[line['user_id']] = {}
+        timestamp = line['timestamp'].split()
+        date = timestamp[0].split('-')
+        timeofDay = timestamp[1].split(':')
+        # timeofDay[2] = float(timeofDay[2])//1
+        print(timestamp)
+        allStreakDict[line['user_id']][line['attempt_number']] = (line['attempt_duration'], datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(timeofDay[0]), int(timeofDay[1]), int(float(timeofDay[2])//1)))
+
+print(allStreakDict)
+    
 
 def time_parse(diffObject):
     # print(diffObject.days)
@@ -46,24 +59,34 @@ async def lost(ctx):
     # await ctx.respond("Ah, sorry to hear that.")
     if ctx.author.id not in allStreakDict:
         allStreakDict[ctx.author.id] = {}
-        allStreakDict[ctx.author.id][1] = datetime.datetime.now()
+        allStreakDict[ctx.author.id][1] = ('No time', datetime.datetime.now())
 
         await ctx.respond("First time, eh? Hopefully it\'ll be a while before I see you.")
     else:
         inputKey = list(allStreakDict[ctx.author.id].keys())[-1] + 1
-        allStreakDict[ctx.author.id][inputKey] = datetime.datetime.now()
-        diffObject = datetime.datetime.now() - allStreakDict[ctx.author.id][inputKey-1]
-        
+        diffObject = datetime.datetime.now() - allStreakDict[ctx.author.id][inputKey-1][-1]
         timeStr = time_parse(diffObject)
         await ctx.respond(f'Ah, sorry to hear that. You went for {timeStr}')
+        allStreakDict[ctx.author.id][inputKey] = (timeStr, datetime.datetime.now())
         
-    # with open('Log.csv', 'w') as file_out:
+        
+    with open('log.csv', 'w') as file_out:
+        writer = csv.writer(file_out)
+        writer.writerow(['user_id', 'attempt_number', 'attempt_duration', 'timestamp'])
+        print(allStreakDict)
+        for userid in allStreakDict:
+            for attempt in allStreakDict[userid]:
+                writer.writerow([userid, attempt, allStreakDict[userid][attempt][0], allStreakDict[userid][attempt][1]])
+    print(allStreakDict)
+            
+            
+            
         
 
 
 with open('config.json', 'r') as cfg:
 # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
-    data = json.load(cfg) 
+    data = json.load(cfg)
 gameBot.run(data["token"])  
 
 #not able to take multiple, needs to be hosted somewhere
