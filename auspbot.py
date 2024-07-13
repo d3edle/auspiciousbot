@@ -5,6 +5,8 @@ import datetime
 import time
 import json
 
+global allStreakDict
+allStreakDict = {}
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -17,11 +19,13 @@ gameBot = commands.Bot(
 )
 
 @gameBot.slash_command(
-  name="first_slash",
+  name="lost",
   guild_ids=[929836210644463718]
 )
-async def first_slash(ctx): 
-    await ctx.respond("You executed the slash command!")
+async def lost(ctx): 
+    await ctx.respond("Ah, sorry to hear that.")
+    if ctx.author.id not in allStreakDict:
+        print('hi')
 
 
 with open('config.json', 'r') as cfg:
