@@ -18,14 +18,47 @@ gameBot = commands.Bot(
     intents=intents,
 )
 
+def time_parse(diffObject):
+    # print(diffObject.days)
+    # print(diffObject.weeks)
+    weeks = diffObject.days // 7 
+    days = diffObject.days % 7
+    hours = diffObject.seconds // 3600
+    minutes = diffObject.seconds % 3600 // 60
+    seconds = diffObject.seconds % 3600 % 60
+    if weeks == 0:
+        if days == 0:
+            if hours == 0:
+                timeStr = f'{minutes} minutes and {seconds} seconds.'
+            else:
+                timestr = f'{hours} hours, {minutes} minutes, and {seconds} seconds.'
+        else:
+            timeStr = f'{days} days, {hours} hours, {minutes} minutes, and {seconds} seconds.'
+    else:
+        timeStr = f'{weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds.'   
+    return timeStr
+
 @gameBot.slash_command(
   name="lost",
   guild_ids=[929836210644463718]
 )
 async def lost(ctx): 
-    await ctx.respond("Ah, sorry to hear that.")
+    # await ctx.respond("Ah, sorry to hear that.")
     if ctx.author.id not in allStreakDict:
-        print('hi')
+        allStreakDict[ctx.author.id] = {}
+        allStreakDict[ctx.author.id][1] = datetime.datetime.now()
+
+        await ctx.respond("First time, eh? Hopefully it\'ll be a while before I see you.")
+    else:
+        inputKey = list(allStreakDict[ctx.author.id].keys())[-1] + 1
+        allStreakDict[ctx.author.id][inputKey] = datetime.datetime.now()
+        diffObject = datetime.datetime.now() - allStreakDict[ctx.author.id][inputKey-1]
+        
+        timeStr = time_parse(diffObject)
+        await ctx.respond(f'Ah, sorry to hear that. You went for {timeStr}')
+        
+    # with open('Log.csv', 'w') as file_out:
+        
 
 
 with open('config.json', 'r') as cfg:
