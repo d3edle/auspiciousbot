@@ -122,9 +122,6 @@ async def longestattempt(ctx):
         color=discord.Colour.blurple(), # Pycord provides a class with default colors you can choose from
     )
     await ctx.respond(embed=embed)
-            
-        
-
 
 with open('config.json', 'r') as cfg:
 # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
