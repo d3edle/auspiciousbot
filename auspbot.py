@@ -103,21 +103,25 @@ async def viewallmine(ctx):
     await ctx.respond(embed=embed)
     
         
-    # for id in allStreakDict:
-    #     if ctx.author.id == id:
-    #         print('match 84')
-    #         await ctx.respond(allStreakDict[id]) 
-            
 @gameBot.slash_command(
   name="longestattempt",
   guild_ids=[929836210644463718]
 )
 async def longestattempt(ctx):    
-    lengthlist = []
-    for id in allStreakDict:
-        if ctx.author.id == id:
-            print('match 84')
-            await ctx.respond(allStreakDict[id])   
+    max = 1 #Index by attempt number later
+    for attempt in allStreakDict[ctx.author.id]:
+        if allStreakDict[ctx.author.id][attempt][2] > allStreakDict[ctx.author.id][max][2]:
+            max = attempt
+    length = allStreakDict[ctx.author.id][max][0][:-1] #Cuts off the period at the end
+    date = f'{allStreakDict[ctx.author.id][max][1].month}-{allStreakDict[ctx.author.id][max][1].day}-{allStreakDict[ctx.author.id][max][1].year}'
+            
+            
+    embed = discord.Embed(
+        title=f'{ctx.author}\'s Longest attempt:',
+        description=f'Your longest attempt had a duration of {length} that ended on {date}',
+        color=discord.Colour.blurple(), # Pycord provides a class with default colors you can choose from
+    )
+    await ctx.respond(embed=embed)
             
         
 
