@@ -47,9 +47,9 @@ def time_parse(diffObject):
         timeStr = f'{weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds.'   
     return timeStr
 
-@gameBot.slash_command(
+@gameBot.slash_command(description="For when you lose or are just using the bot for the first time.",
   name="lost",
-  guild_ids=[929836210644463718]
+#   guild_ids=[929836210644463718, 1261023721561264148]
 )
 async def lost(ctx): 
     if ctx.author.id not in list(allStreakDict.keys()):
@@ -80,9 +80,9 @@ async def lost(ctx):
             for attempt in allStreakDict[userid]:
                 writer.writerow([userid, attempt, allStreakDict[userid][attempt][0], allStreakDict[userid][attempt][1], allStreakDict[userid][attempt][2]])
             
-@gameBot.slash_command(
+@gameBot.slash_command(description="To view all your attempts.",
   name="viewallmine",
-  guild_ids=[929836210644463718]
+#   guild_ids=[929836210644463718, 1261023721561264148]
 )
 async def viewallmine(ctx):    
     message = ''
@@ -103,9 +103,9 @@ async def viewallmine(ctx):
     await ctx.respond(embed=embed)
     
         
-@gameBot.slash_command(
+@gameBot.slash_command(description="To view your longest attempt.",
   name="longestattempt",
-  guild_ids=[929836210644463718]
+#   guild_ids=[929836210644463718, 1261023721561264148]
 )
 async def longestattempt(ctx):    
     max = 1 #Index by attempt number later
