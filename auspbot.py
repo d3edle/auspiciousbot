@@ -16,24 +16,20 @@ gameBot = commands.Bot(
     description=description,
     intents=intents,
 )
-with open('log.csv', 'r') as file_in:
-    dictReader = csv.DictReader(file_in)
-    for line in dictReader:
-        if line['user_id'] not in allStreakDict:
-            allStreakDict[line['user_id']] = {}
-        timestamp = line['timestamp'].split()
-        date = timestamp[0].split('-')
-        timeofDay = timestamp[1].split(':')
-        # timeofDay[2] = float(timeofDay[2])//1
-        print(timestamp)
-        allStreakDict[line['user_id']][line['attempt_number']] = (line['attempt_duration'], datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(timeofDay[0]), int(timeofDay[1]), int(float(timeofDay[2])//1)))
-
-print(allStreakDict)
-    
+try: 
+    with open('log.csv', 'r') as file_in:
+        dictReader = csv.DictReader(file_in)
+        for line in dictReader:
+            if int(line['user_id']) not in allStreakDict:
+                allStreakDict[int(line['user_id'])] = {}
+            timestamp = line['timestamp'].split()
+            date = timestamp[0].split('-')
+            timeofDay = timestamp[1].split(':')
+            allStreakDict[int(line['user_id'])][int(line['attempt_number'])] = (line['attempt_duration'], datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(timeofDay[0]), int(timeofDay[1]), int(float(timeofDay[2])//1)), int(line['total_seconds']))
+except: 
+    pass
 
 def time_parse(diffObject):
-    # print(diffObject.days)
-    # print(diffObject.weeks)
     weeks = diffObject.days // 7 
     days = diffObject.days % 7
     hours = diffObject.seconds // 3600
@@ -44,7 +40,7 @@ def time_parse(diffObject):
             if hours == 0:
                 timeStr = f'{minutes} minutes and {seconds} seconds.'
             else:
-                timestr = f'{hours} hours, {minutes} minutes, and {seconds} seconds.'
+                timeStr = f'{hours} hours, {minutes} minutes, and {seconds} seconds.'
         else:
             timeStr = f'{days} days, {hours} hours, {minutes} minutes, and {seconds} seconds.'
     else:
@@ -56,30 +52,72 @@ def time_parse(diffObject):
   guild_ids=[929836210644463718]
 )
 async def lost(ctx): 
-    # await ctx.respond("Ah, sorry to hear that.")
-    if ctx.author.id not in allStreakDict:
+    if ctx.author.id not in list(allStreakDict.keys()):
+        
         allStreakDict[ctx.author.id] = {}
-        allStreakDict[ctx.author.id][1] = ('No time', datetime.datetime.now())
+        allStreakDict[ctx.author.id][1] = ('No time', datetime.datetime.now(), 0)
+        embed = discord.Embed(
+            description="First time, eh? Hopefully it\'ll be a while before I see you.",
+            color=discord.Colour.blurple(), # Pycord provides a class with default colors you can choose from
+        )
 
-        await ctx.respond("First time, eh? Hopefully it\'ll be a while before I see you.")
+        await ctx.respond(embed = embed)
     else:
         inputKey = list(allStreakDict[ctx.author.id].keys())[-1] + 1
-        diffObject = datetime.datetime.now() - allStreakDict[ctx.author.id][inputKey-1][-1]
+        diffObject = datetime.datetime.now() - allStreakDict[ctx.author.id][inputKey-1][1]
         timeStr = time_parse(diffObject)
-        await ctx.respond(f'Ah, sorry to hear that. You went for {timeStr}')
-        allStreakDict[ctx.author.id][inputKey] = (timeStr, datetime.datetime.now())
-        
+        embed = discord.Embed(
+            description=f'Ah, sorry to hear that. You went for {timeStr}',
+            color=discord.Colour.blurple(), # Pycord provides a class with default colors you can choose from
+        )
+        await ctx.respond(embed=embed)
+        allStreakDict[ctx.author.id][inputKey] = (timeStr, datetime.datetime.now(), diffObject.seconds)
         
     with open('log.csv', 'w') as file_out:
         writer = csv.writer(file_out)
-        writer.writerow(['user_id', 'attempt_number', 'attempt_duration', 'timestamp'])
-        print(allStreakDict)
+        writer.writerow(['user_id', 'attempt_number', 'attempt_duration', 'timestamp', 'total_seconds'])
         for userid in allStreakDict:
             for attempt in allStreakDict[userid]:
-                writer.writerow([userid, attempt, allStreakDict[userid][attempt][0], allStreakDict[userid][attempt][1]])
-    print(allStreakDict)
+                writer.writerow([userid, attempt, allStreakDict[userid][attempt][0], allStreakDict[userid][attempt][1], allStreakDict[userid][attempt][2]])
             
+@gameBot.slash_command(
+  name="viewallmine",
+  guild_ids=[929836210644463718]
+)
+async def viewallmine(ctx):    
+    message = ''
+    with open('log.csv', 'r') as file_in:
+        dict = csv.DictReader(file_in)
+        for line in dict: 
+            if int(line['user_id']) == ctx.author.id:
+                date = line['timestamp'].split()[0]
+                if int(line['attempt_number']) == 1:
+                    message += f'First attempt: started on {date}.\n\n' 
+                else:
+                    message += f'Attempt {line['attempt_number']}: Had a length of {line['attempt_duration'][:-1]} and ended on {date}.\n\n'
+    embed = discord.Embed(
+        title=f'{ctx.author}: All attempts',
+        description=f'{message}',
+        color=discord.Colour.blurple(), # Pycord provides a class with default colors you can choose from
+    )
+    await ctx.respond(embed=embed)
+    
+        
+    # for id in allStreakDict:
+    #     if ctx.author.id == id:
+    #         print('match 84')
+    #         await ctx.respond(allStreakDict[id]) 
             
+@gameBot.slash_command(
+  name="longestattempt",
+  guild_ids=[929836210644463718]
+)
+async def longestattempt(ctx):    
+    lengthlist = []
+    for id in allStreakDict:
+        if ctx.author.id == id:
+            print('match 84')
+            await ctx.respond(allStreakDict[id])   
             
         
 
